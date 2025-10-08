@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>دور العجلة واطبخ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#fff7f0;
+      --card:#fff; 
+      --accent:#d9480f;
+      --accent-2:#fecb88;
+      --muted:#6b6b6b;
+      --shadow: 0 8px 30px rgba(11,22,27,0.08);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:'Cairo',sans-serif;
+      background:linear-gradient(180deg,#fff7f0 0%,#fff3ea 100%);
+      color:#2b2b2b;
+      padding:24px;
+      line-height:1.6;
+    }
+    .container{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start}
+    header{display:flex;align-items:center;gap:12px}
+    .brand{display:flex;flex-direction:column}
+    h1{font-size:26px;color:var(--accent);letter-spacing:0.6px}
+    .subtitle{font-size:13px;color:var(--muted)}
+    .card{background:var(--card);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+
+    /* المنطقة اليسرى - العجلة */
+    .wheel-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+    canvas#wheel{max-width:100%;border-radius:18px;background:transparent;display:block;margin:0 auto}
+    .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    button{background:var(--accent);color:#fff;border:0;padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer;transition:all .2s ease}
+    button:hover{background:#b63a0b}
+    .btn-ghost{background:transparent;border:2px solid rgba(0,0,0,0.06);color:var(--accent)}
+    .btn-ghost:hover{border-color:var(--accent);background:rgba(217,72,15,0.05)}
+    .result{padding:10px 14px;border-radius:10px;background:linear-gradient(90deg,#fff 0%, #fff3f0 100%);box-shadow:0 6px 18px rgba(209,72,15,0.06);font-weight:800;min-width:200px;text-align:center}
+
+    /* اللوحة اليمنى */
+    .side{display:flex;flex-direction:column;gap:12px}
+    label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+    textarea,input{width:100%;padding:10px;border-radius:10px;border:1px dashed rgba(0,0,0,0.06);font-size:14px}
+    .history{height:240px;overflow:auto;padding:8px;border-radius:10px;background:linear-gradient(180deg,#fff 0%, #fffaf6 100%)}
+    .dish-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px}
+    .dish-item .tag{padding:6px 8px;border-radius:8px;background:var(--accent-2);font-weight:700}
+    .meta{font-size:12px;color:var(--muted)}
+
+    /* عناصر زخرفية مكسيكية */
+    .banner{display:flex;gap:8px;align-items:center;justify-content:space-between}
+    .paper{padding:6px 10px;border-radius:999px;background:linear-gradient(90deg,hwb(30 29% 67%),#766b65);border:2px solid var(--accent-2);font-weight:700}
+    .illustr{width:100%;height:120px;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+    .illustr svg{width:100%;height:100%;object-fit:cover}
+
+    footer{font-size:12px;color:var(--muted);text-align:center;margin-top:18px}
+
+    @media (max-width:980px){.container{grid-template-columns:1fr}canvas#wheel{width:520px !important;height:520px !important}}
+    @media (max-width:600px){canvas#wheel{width:360px !important;height:360px !important}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div>
+      <header>
+        <div class="brand">
+          <h1>عجلة الطبخ العالمي</h1>
+          <div class="subtitle">تدوّر العجلة وتطلّعلك وصفة شعبية من دولة عشوائية ✨</div>
+        </div>
+      </header>
+
+      <div class="card wheel-wrap" style="margin-top:12px">
+        <div class="illustr">
+          <!-- زخرفة SVG بسيطة -->
+          <svg viewBox="0 0 1200 200" preserveAspectRatio="xMidYMid slice" aria-hidden>
+            <rect width="1200" height="200" fill="#fff5ee" />
+            <path d="M0 160 q40 -120 120 -80 q80 40 140 -20 q60 -60 130 -10 q70 50 160 -30 q90 -80 200 40" fill="none" stroke="#f7a072" stroke-width="6" opacity="0.5"/>
+          </svg>
+        </div>
+
+        <canvas id="wheel"></canvas>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap">
+          <div class="controls">
+            <button id="spinBtn">دُرّ العجلة</button>
+            <button id="spinQuick" class="btn-ghost">دور سريع</button>
+          </div>
+          <div class="result" id="result">اضغط "دُرّ العجلة" لتعرف الوصفة</div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <div class="card">
+        <div class="banner">
+          <div class="paper">قائمة الوصفات</div>
+          <button id="shuffleBtn" class="btn-ghost">تبديل</button>
+        </div>
+        <label>تعديل القائمة (سطر لكل وصفة — إسم البلد — إسم الطبق):</label>
+        <textarea id="itemsInput" rows="8">المكسيك — تاكو ألف باستور
+اليابان — سوشي
+إيطاليا — بيتزا مارغريتا
+لبنان — فتوش
+تايلاند — باد تاي
+المغرب — طاجين لحم
+المكسيك — إنشيلادا
+تركيا — كباب
+الهند — بيرياني
+فرنسا — كرواسون</textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button id="apply">تطبيق القائمة</button>
+          <button id="randomize">ألوان عشوائية</button>
+          <button id="clearHistory" class="btn-ghost">محو السجل</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <label>سجل النتائج (محفوظ محليًا)</label>
+        <div class="history" id="history"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button id="copyLast" class="btn-ghost">نسخ آخر</button>
+          <button id="exportCSV">تصدير CSV</button>
+        </div>
+      </div>
+
+  </div>
+
+<script>
+const canvas = document.getElementById('wheel');
+const ctx = canvas.getContext('2d');
+let size = Math.min(window.innerWidth*0.6, 760);
+canvas.width = size;
+canvas.height = size;
+let cx = canvas.width/2, cy = canvas.height/2, radius = Math.min(cx,cy)-20;
+
+let items = [];
+const palette = ['#f94144','#f3722c','#f8961e','#f9c74f','#90be6d','#43aa8b','#577590','#7f5539'];
+
+function parseItems(){
+  const raw = document.getElementById('itemsInput').value.trim();
+  const lines = raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  items = lines.map((ln,i)=>{
+    const parts = ln.split('—').map(p=>p.trim());
+    return { country: parts[0]||('بلد '+(i+1)), dish: parts[1]||('وصفة '+(i+1)), color: palette[i%palette.length] };
+  });
+  if(items.length===0) items.push({country:'—', dish:'لا توجد وصفات', color:'#ddd'});
+}
+
+parseItems();
+
+let startAngle=0, isSpinning=false, angularVelocity=0, friction=0.995;
+
+function drawWheel(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const n=items.length, arc=(Math.PI*2)/n;
+  for(let i=0;i<n;i++){
+    const ang=startAngle+i*arc;
+    ctx.beginPath();ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,radius,ang,ang+arc);
+    ctx.closePath();ctx.fillStyle=items[i].color;ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=2;ctx.stroke();
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(ang+arc/2);
+    ctx.textAlign='right';ctx.fillStyle='rgba(0,0,0,0.8)';ctx.font='700 '+Math.max(14,radius/12)+'px Cairo, sans-serif';
+    ctx.fillText(items[i].country+' — '+items[i].dish, radius-18,6);
+    ctx.restore();
+  }
+  ctx.beginPath();ctx.arc(cx,cy,50,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+  ctx.fillStyle='#2b2b2b';
+  const px=cx,py=cy-radius-8;
+  ctx.beginPath();ctx.moveTo(px-18,py+28);ctx.lineTo(px+18,py+28);ctx.lineTo(px,py);ctx.closePath();ctx.fill();
+}
+
+function animate(){
+  if(!isSpinning) return;
+  startAngle+=angularVelocity/1000;
+  angularVelocity*=friction;
+  if(Math.abs(angularVelocity)<0.02){isSpinning=false;angularVelocity=0;showResult();}
+  drawWheel();
+  requestAnimationFrame(animate);
+}
+
+function showResult(){
+  const n=items.length;
+  const normalized=((-(startAngle)%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+  const arc=(Math.PI*2)/n;
+  const index=Math.floor(normalized/arc)%n;
+  const winner=items[(n-index)%n]||items[0];
+  document.getElementById('result').textContent=winner.country+' — '+winner.dish;
+  addToHistory(winner);
+}
+
+function spin(power){
+  if(isSpinning) return;
+  isSpinning=true;
+  const base=power||(3000+Math.random()*6000);
+  angularVelocity=(Math.random()*0.6+0.9)*base/500;
+  friction=0.994-Math.random()*0.001;
+  animate();
+}
+
+document.getElementById('spinBtn').addEventListener('click',()=>spin());
+document.getElementById('spinQuick').addEventListener('click',()=>spin(15000));
+document.getElementById('apply').addEventListener('click',()=>{parseItems();drawWheel();document.getElementById('result').textContent='القائمة محدثة';saveItemsToStorage();});
+document.getElementById('randomize').addEventListener('click',()=>{items.forEach(it=>it.color=randomColor());drawWheel();});
+document.getElementById('shuffleBtn').addEventListener('click',()=>{shuffleItems();drawWheel();});
+document.getElementById('clearHistory').addEventListener('click',()=>{localStorage.removeItem('wheel_history');renderHistory();});
+document.getElementById('copyLast').addEventListener('click',()=>{const h=getHistory();if(h.length){navigator.clipboard.writeText(h[0].text);alert('تم نسخ: '+h[0].text);}else alert('لا توجد نتيجة للنسخ');});
+document.getElementById('exportCSV').addEventListener('click',()=>{const h=getHistory();if(!h.length){alert('لا سجل للتصدير');return;}const csv='time,country,dish\n'+h.map(r=>[r.time,'"'+r.country+'"','"'+r.dish+'"'].join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='wheel_history.csv';a.click();URL.revokeObjectURL(url);});
+
+function randomColor(){const h=Math.floor(Math.random()*360);return `hsl(${h} 75% 60%)`;}
+function shuffleItems(){for(let i=items.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[items[i],items[j]]=[items[j],items[i]];}}
+
+function addToHistory(entry){const h=getHistory();const now=new Date();const row={time:now.toLocaleString('ar-EG'),country:entry.country,dish:entry.dish,text:entry.country+' — '+entry.dish};h.unshift(row);while(h.length>50) h.pop();localStorage.setItem('wheel_history',JSON.stringify(h));renderHistory();}
+function getHistory(){try{return JSON.parse(localStorage.getItem('wheel_history'))||[]}catch(e){return[]}}
+function renderHistory(){const el=document.getElementById('history');el.innerHTML='';const h=getHistory();if(!h.length){el.innerHTML='<div class="meta">لا توجد نتائج بعد — دوّر العجلة!</div>';return;}h.forEach(r=>{const div=document.createElement('div');div.className='dish-item';div.innerHTML=`<div style="flex:1"><div style="font-weight:700">${r.dish}</div><div class="meta">${r.country} · <span style="opacity:.8">${r.time}</span></div></div>`;el.appendChild(div);});}
+
+function saveItemsToStorage(){localStorage.setItem('wheel_items',document.getElementById('itemsInput').value);}
+function loadItemsFromStorage(){const s=localStorage.getItem('wheel_items');if(s){document.getElementById('itemsInput').value=s;parseItems();}}
+
+window.addEventListener('resize',()=>{
+  size=Math.min(window.innerWidth*0.6,760);
+  canvas.width=size;canvas.height=size;
+  cx=canvas.width/2;cy=canvas.height/2;radius=Math.min(cx,cy)-20;
+  drawWheel();
+});
+
+loadItemsFromStorage();
+drawWheel();
+renderHistory();
+</script>
+</body>
+</html>
